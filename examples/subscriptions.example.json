@@ -1,0 +1,14 @@
+{
+  "providers": {
+    "openai": {
+      "monthly_flat": 20.0,
+      "label": "OpenAI subscription"
+    },
+    "anthropic": {
+      "actuals": {
+        "2026-06": 123.45
+      },
+      "label": "Anthropic API actual"
+    }
+  }
+}
