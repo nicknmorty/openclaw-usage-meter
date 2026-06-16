@@ -56,6 +56,7 @@ repo.
 See:
 
 - [docs/sanitization.md](docs/sanitization.md)
+- [docs/database-setup.md](docs/database-setup.md)
 - [SECURITY.md](SECURITY.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -118,6 +119,11 @@ provider.
 ## Database
 
 **Location:** `~/.openclaw/usage/agent_usage.sqlite`
+
+The collector creates the SQLite database, tables, indexes, and views on the
+first collection run. See [docs/database-setup.md](docs/database-setup.md) for
+custom paths, verification queries, repair/recalibration commands, and privacy
+notes.
 
 **Schema (v2):** `event_key`, `session_id`, `source_file`, `event_at`, `role`, `provider`, `model`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, `total_tokens`, `cost_usd`, `cost_source`
 
