@@ -23,7 +23,7 @@ OpenClaw runs your AI agents. The costs across multiple providers add up in ways
 
 ```bash
 # Install (no external dependencies — pure Python stdlib)
-git clone https://github.com/YOUR_ORG/openclaw-usage-meter.git
+git clone https://github.com/nicknmorty/openclaw-usage-meter.git
 cd openclaw-usage-meter
 
 # First collection run (builds DB from existing JSONL sessions)
