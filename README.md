@@ -4,6 +4,12 @@ Track the real API cost of [OpenClaw](https://openclaw.ai) agent sessions across
 
 Idempotent collector reads your local OpenClaw JSONL session files, stores events in SQLite with token-level granularity, computes costs from a maintained pricing table, and produces clean reports.
 
+This repository is the generic public product baseline. Private deployment
+overlays should keep real labels, billing actuals, local paths, cron targets,
+and calibration notes outside this repo.
+
+Current public baseline: `v0.1.0`.
+
 ## Why
 
 OpenClaw runs your AI agents. The costs across multiple providers add up in ways that are hard to see without tooling. This gives you:
@@ -38,6 +44,20 @@ python3 scripts/usage_report.py --today
 - Python 3.8+
 - OpenClaw installed and generating JSONL session files at `~/.openclaw/agents/*/sessions/*.jsonl`
 - No external Python packages needed
+
+## Public Product Model
+
+This repo is designed to be released as a generic product, not as a sanitized
+export of any one deployment. Keep private deployment overlays in private source
+control and promote generic changes into this repo by reviewed patch or
+cherry-pick only. Never raw-merge private repository history into the public
+repo.
+
+See:
+
+- [docs/sanitization.md](docs/sanitization.md)
+- [SECURITY.md](SECURITY.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Scripts
 
@@ -111,7 +131,7 @@ provider.
 
 **Cost provenance:** OpenClaw writes `cost=0` for all observed events in JSONL. By default, all costs are computed locally from the built-in pricing table in `agent_usage_collect.py`. Token counts are authoritative from provider API responses; costs are computed here unless `USAGE_TRUST_JSONL_COST=1` is explicitly set for a future OpenClaw version that writes real costs.
 
-**Contact labels:** The collector can optionally map sender IDs to friendly names with `--contacts ~/.openclaw/usage/contact-labels.json`. Keep the real file private; see `examples/contact-labels.example.json` for the schema.
+**Contact labels:** The collector can optionally map sender IDs to friendly names with `--contacts ~/.openclaw/usage/labels.local.json`. Keep the real file private; see `examples/labels.example.json` for the schema.
 
 ## Cron / automation
 
@@ -143,7 +163,7 @@ Then update the `cache_write_per_mtok` values in `scripts/agent_usage_collect.py
 | OpenAI | ChatGPT Pro subscription | Token counts from JSONL × API list rates = subscription-equivalent |
 | OpenRouter | Direct API | Prices fetched from OR API; `:free` models correctly $0 |
 
-Monthly and YTD reports include an "Actual paid vs API-equivalent" section when you provide private billing data with `--actuals ~/.openclaw/usage/subscriptions.json`. See `examples/subscriptions.example.json` for the schema.
+Monthly and YTD reports include an "Actual paid vs API-equivalent" section when you provide private billing data with `--actuals ~/.openclaw/usage/subscriptions.local.json`. See `examples/subscriptions.example.json` for the schema.
 
 ## OpenClaw slash command (`/spend`)
 

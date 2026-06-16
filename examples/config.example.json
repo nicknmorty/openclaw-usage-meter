@@ -1,0 +1,7 @@
+{
+  "agents_dir": "/home/user/.openclaw/agents",
+  "db_path": "/home/user/.openclaw/usage/agent_usage.sqlite",
+  "contacts_path": "/home/user/.openclaw/usage/labels.local.json",
+  "actuals_path": "/home/user/.openclaw/usage/subscriptions.local.json",
+  "timezone": "Etc/UTC"
+}

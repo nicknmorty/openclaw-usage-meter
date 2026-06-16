@@ -1,0 +1,7 @@
+{
+  "anthropic": {
+    "cache_write_multiplier": 0.8,
+    "notes": "Example calibration only. Keep real billing comparisons private."
+  },
+  "verified_at": "2026-01-01"
+}

@@ -6,6 +6,12 @@
 # Reference data with personal billing info
 reference/
 
+# Private deployment overlays
+*.local.json
+*.local.md
+overlay/
+private/
+
 # Env files
 .env
 *.env
