@@ -1,190 +1,253 @@
-# openclaw-usage-meter
+# openclaw-usage-meter 🦞
 
-Track the real API cost of [OpenClaw](https://openclaw.ai) agent sessions across all billing streams — Anthropic direct API, OpenAI direct API, OpenAI subscription (ChatGPT Pro), and OpenRouter.
+Track what your OpenClaw agents actually cost.
 
-Idempotent collector reads your local OpenClaw JSONL session files, stores events in SQLite with token-level granularity, computes costs from a maintained pricing table, and produces clean reports.
-
-This repository is the generic public product baseline. Private deployment
-overlays should keep real labels, billing actuals, local paths, cron targets,
-and calibration notes outside this repo.
+[OpenClaw](https://openclaw.ai) writes rich JSONL session logs, but real spend is
+spread across providers, subscriptions, API keys, and local reports.
+`openclaw-usage-meter` turns those logs into a durable SQLite ledger with
+token-level detail, computed cost estimates, and human-readable reports.
 
 Current public baseline: `v0.1.0`.
 
-## Why
+## What It Does
 
-OpenClaw runs your AI agents. The costs across multiple providers add up in ways that are hard to see without tooling. This gives you:
+- Collects OpenClaw JSONL usage events into SQLite
+- Deduplicates safely, so collection can run on a schedule
+- Computes API-equivalent cost from provider/model pricing
+- Reports daily, weekly, monthly, YTD, provider, model, and token-type spend
+- Supports private actual-paid billing overlays for subscription comparison
+- Includes an optional OpenClaw `/spend` extension
+- Uses only the Python standard library for the core CLI tools
 
-- **Per-provider monthly totals** vs what you actually paid
-- **Subscription value extraction** — if you have a flat-rate subscription, how much API-equivalent usage did you get vs the monthly fee?
-- **Model-level breakdown** — which models are actually driving your bill
-- **Calibrated estimates** — empirically tuned against real bills (Anthropic cache write pricing, Codex token counting)
-
-## Quick start
+## Quick Start
 
 ```bash
-# Install (no external dependencies — pure Python stdlib)
+# Install
 git clone https://github.com/nicknmorty/openclaw-usage-meter.git
 cd openclaw-usage-meter
 
-# First collection run (builds DB from existing JSONL sessions)
+# First collection run: creates ~/.openclaw/usage/agent_usage.sqlite
 python3 scripts/agent_usage_collect.py
 
-# Back-fill zero-cost events from pricing table
+# Back-fill zero-cost events from the pricing table
 python3 scripts/agent_usage_collect.py --repair-costs
 
-# View monthly summary
+# View reports
 python3 scripts/usage_report.py
-
-# Today's spending
 python3 scripts/usage_report.py --today
 ```
 
 ## Requirements
 
 - Python 3.8+
-- OpenClaw installed and generating JSONL session files at `~/.openclaw/agents/*/sessions/*.jsonl`
-- No external Python packages needed
+- OpenClaw session JSONL files at `~/.openclaw/agents/*/sessions/*.jsonl`
+- No external Python packages for collection/reporting
 
-## Public Product Model
+## How It Works
 
-This repo is designed to be released as a generic product, not as a sanitized
-export of any one deployment. Keep private deployment overlays in private source
-control and promote generic changes into this repo by reviewed patch or
-cherry-pick only. Never raw-merge private repository history into the public
-repo.
+```
+OpenClaw JSONL sessions
+        │
+        ▼
+scripts/agent_usage_collect.py
+        │
+        ▼
+~/.openclaw/usage/agent_usage.sqlite
+        │
+        ├── scripts/usage_report.py
+        └── optional extension/ /spend command
+```
 
-See:
+The collector reads assistant usage events from local OpenClaw sessions, stores
+them in SQLite, computes costs from the built-in pricing table, and maintains
+per-session rollups for fast reporting.
 
-- [docs/sanitization.md](docs/sanitization.md)
-- [docs/database-setup.md](docs/database-setup.md)
-- [SECURITY.md](SECURITY.md)
-- [CONTRIBUTING.md](CONTRIBUTING.md)
+## Core Commands
 
-## Scripts
-
-### `scripts/agent_usage_collect.py` — main collector
-
-Reads JSONL session files, deduplicates by event key, stores to SQLite.
+### Collect Usage
 
 ```bash
-python3 scripts/agent_usage_collect.py                    # normal collection
+python3 scripts/agent_usage_collect.py
+python3 scripts/agent_usage_collect.py --db /path/to/agent_usage.sqlite
+python3 scripts/agent_usage_collect.py --agents-dir /path/to/openclaw/agents
 python3 scripts/agent_usage_collect.py --contacts ~/.openclaw/usage/contact-labels.json
-python3 scripts/agent_usage_collect.py --repair-costs     # back-fill zero-cost events
-python3 scripts/agent_usage_collect.py --recalibrate      # recompute after pricing change
+python3 scripts/agent_usage_collect.py --repair-costs
+python3 scripts/agent_usage_collect.py --recalibrate
 python3 scripts/agent_usage_collect.py --recalibrate --dry-run
 ```
 
-### `scripts/usage_report.py` — query and report tool
+### Report Usage
 
 ```bash
-python3 scripts/usage_report.py                           # monthly summary (default)
-python3 scripts/usage_report.py --today                   # today's spending
-python3 scripts/usage_report.py --daily --month 2026-06   # cost by day
-python3 scripts/usage_report.py --model                   # cost by model (all time)
-python3 scripts/usage_report.py --breakdown --month 2026-06  # token-type breakdown
-python3 scripts/usage_report.py --calibrate --month 2026-06 --actual YOUR_BILL_AMOUNT
-python3 scripts/usage_report.py --week                    # last 7 days
-python3 scripts/usage_report.py --ytd                     # year-to-date monthly
-python3 scripts/usage_report.py --provider anthropic      # filter to one provider
-python3 scripts/usage_report.py --week --provider openai  # combine with any time window
-python3 scripts/usage_report.py --all                     # all sections
+python3 scripts/usage_report.py
+python3 scripts/usage_report.py --today
+python3 scripts/usage_report.py --week
+python3 scripts/usage_report.py --daily --month 2026-06
+python3 scripts/usage_report.py --model
+python3 scripts/usage_report.py --breakdown --month 2026-06
+python3 scripts/usage_report.py --provider anthropic
+python3 scripts/usage_report.py --week --provider openai
+python3 scripts/usage_report.py --ytd
+python3 scripts/usage_report.py --all
 ```
 
-### `scripts/fetch_openai_usage.py` — OpenAI admin API fetcher
+### Fetch OpenAI Admin Usage
 
-Pulls usage data from the OpenAI organization API (requires an admin key with `api.usage.read` scope).
+Requires an OpenAI admin key with `api.usage.read` scope.
 
 ```bash
-# Requires OPENAI_ADMIN_KEY env var (sk-admin-* key)
-python3 scripts/fetch_openai_usage.py --start 2026-03-01
+OPENAI_ADMIN_KEY=sk-admin-... python3 scripts/fetch_openai_usage.py --start 2026-03-01
 python3 scripts/fetch_openai_usage.py --start 2026-03-01 --save-json /tmp/openai_usage.json
 ```
 
-## Provider filtering
-
-Any report can be scoped to a single provider with `--provider`. The value is a
-display group that expands to the underlying raw provider values:
-
-| `--provider` | Includes raw providers |
-|--------------|------------------------|
-| `anthropic`  | `anthropic` |
-| `openai`     | `openai`, `openai-codex`, `codex` |
-| `openrouter` | `openrouter` |
-
-Combine it with any time window: `--today`, `--week`, `--daily`, `--ytd`,
-`--model`, or the default monthly summary. Example: track Anthropic and OpenAI
-spend over the same week side by side by running the report twice, once per
-provider.
-
-## Database
-
-**Location:** `~/.openclaw/usage/agent_usage.sqlite`
-
-The collector creates the SQLite database, tables, indexes, and views on the
-first collection run. See [docs/database-setup.md](docs/database-setup.md) for
-custom paths, verification queries, repair/recalibration commands, and privacy
-notes.
-
-**Schema (v2):** `event_key`, `session_id`, `source_file`, `event_at`, `role`, `provider`, `model`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, `total_tokens`, `cost_usd`, `cost_source`
-
-`cost_source` values:
-- `jsonl` — non-zero JSONL cost was explicitly trusted with `USAGE_TRUST_JSONL_COST=1` (forward compatibility only)
-- `computed` — cost=0 in JSONL; computed from pricing table at collection time
-- `repaired` — back-filled by `--repair-costs` or `--recalibrate`
-- `unknown` — pre-schema-v2 (migration default)
-- `zero` — cost=0, no pricing table entry found
-- `clamped` — was negative, clamped to 0
-
-**Cost provenance:** OpenClaw writes `cost=0` for all observed events in JSONL. By default, all costs are computed locally from the built-in pricing table in `agent_usage_collect.py`. Token counts are authoritative from provider API responses; costs are computed here unless `USAGE_TRUST_JSONL_COST=1` is explicitly set for a future OpenClaw version that writes real costs.
-
-**Contact labels:** The collector can optionally map sender IDs to friendly names with `--contacts ~/.openclaw/usage/labels.local.json`. Keep the real file private; see `examples/labels.example.json` for the schema.
-
-## Cron / automation
-
-The collector is idempotent — safe to run frequently. Example cron job:
-
-```
-*/10 * * * * python3 /path/to/openclaw-usage-meter/scripts/agent_usage_collect.py
-```
-
-Or via OpenClaw cron (see `docs/openclaw-cron.md`).
-
-## Calibration
-
-Anthropic cache write pricing: official docs say 1.25× input rate, but empirical calibration against real provider bills may show a lower effective multiplier for some OpenClaw JSONL datasets. Hypothesis: OpenClaw may over-record `cache_write_tokens` vs what Anthropic actually charges.
-
-To calibrate against your own bill:
-```bash
-python3 scripts/usage_report.py --calibrate --month YYYY-MM --actual YOUR_BILL_AMOUNT
-```
-
-Then update the `cache_write_per_mtok` values in `scripts/agent_usage_collect.py` and re-run `--recalibrate`.
-
-## Billing streams supported
+## Billing Streams
 
 | Provider | Path | Notes |
 |----------|------|-------|
-| Anthropic | Direct API (`ANTHROPIC_API_KEY`) | PPU; API-equivalent cost is computed locally and can be compared to actual paid bills |
-| OpenAI | Direct API (`OPENAI_API_KEY`) | PPU; API-equivalent cost is computed locally |
-| OpenAI | ChatGPT Pro subscription | Token counts from JSONL × API list rates = subscription-equivalent |
-| OpenRouter | Direct API | Prices fetched from OR API; `:free` models correctly $0 |
+| Anthropic | Direct API | API-equivalent cost is computed locally and can be calibrated against actual bills |
+| OpenAI | Direct API | API-equivalent cost is computed locally |
+| OpenAI | ChatGPT Pro / Codex OAuth | Token counts from JSONL × API list rates = subscription-equivalent value |
+| OpenRouter | Direct API | Prices can be fetched from OpenRouter metadata; `:free` models stay $0 |
 
-Monthly and YTD reports include an "Actual paid vs API-equivalent" section when you provide private billing data with `--actuals ~/.openclaw/usage/subscriptions.local.json`. See `examples/subscriptions.example.json` for the schema.
+Any report can be scoped with `--provider`:
 
-## OpenClaw slash command (`/spend`)
+| `--provider` | Raw providers included |
+|--------------|------------------------|
+| `anthropic` | `anthropic` |
+| `openai` | `openai`, `openai-codex`, `codex` |
+| `openrouter` | `openrouter` |
 
-An optional OpenClaw extension in `extension/` registers a Telegram-formatted
-`/spend` command (emoji summaries + Mermaid charts) backed by `usage_report.py`.
-It supports the same time windows and provider filters as the CLI:
+## SQLite Database
 
+Default location:
+
+```text
+~/.openclaw/usage/agent_usage.sqlite
 ```
-/spend                  all-time monthly
-/spend today | week | month [YYYY-MM] | ytd | model
-/spend anthropic week   provider filter + any window
-/spend collect          fresh collection then today
+
+The first collection run creates the SQLite database, schema metadata, tables,
+indexes, and reporting views. Use `--db` to store it elsewhere.
+
+Current schema version: `2`.
+
+Primary tables/views:
+
+| Name | Purpose |
+|------|---------|
+| `schema_meta` | Schema version metadata |
+| `users` | Observed user/contact labels |
+| `sessions` | Collected OpenClaw session files |
+| `usage_events` | Token and cost events |
+| `session_counters` | Per-session rollups |
+| `v_usage_by_agent_user` | Agent/user rollup view |
+| `v_usage_by_day_agent_user` | Daily agent/user rollup view |
+
+See [docs/database-setup.md](docs/database-setup.md) for setup, custom paths,
+verification queries, repair/recalibration commands, and privacy notes.
+
+## Cost Provenance
+
+OpenClaw currently writes `cost=0` for observed JSONL usage events. By default,
+this project computes costs locally from the built-in pricing table in
+`scripts/agent_usage_collect.py`.
+
+`cost_source` values:
+
+| Value | Meaning |
+|-------|---------|
+| `jsonl` | Non-zero JSONL cost was explicitly trusted with `USAGE_TRUST_JSONL_COST=1` |
+| `computed` | Cost was computed from the pricing table at collection time |
+| `repaired` | Cost was back-filled by `--repair-costs` or `--recalibrate` |
+| `unknown` | Pre-schema-v2 migration default |
+| `zero` | No pricing table entry was found |
+| `clamped` | Negative cost was clamped to `0` |
+
+Token counts come from provider API responses recorded in OpenClaw JSONL logs.
+Costs are estimates unless you compare them with actual provider bills.
+
+## Private Overlays
+
+Keep private deployment data out of the public repo:
+
+- contact labels
+- billing actuals
+- local paths
+- cron targets
+- calibration notes
+- generated SQLite databases and WAL/SHM files
+
+Examples live in [examples/](examples/):
+
+| File | Use |
+|------|-----|
+| `labels.example.json` | Friendly labels for user/contact IDs |
+| `config.example.json` | Generic local config shape |
+| `calibration.example.json` | Pricing/calibration notes |
+| `subscriptions.example.json` | Actual-paid subscription overlays |
+| `cron.example.md` | Cron setup example |
+
+Monthly and YTD reports include an "Actual paid vs API-equivalent" section when
+you provide private billing data with `--actuals`.
+
+## Automation
+
+The collector is idempotent and safe to run frequently.
+
+```cron
+*/10 * * * * python3 /path/to/openclaw-usage-meter/scripts/agent_usage_collect.py
 ```
 
-See `extension/README.md` for install and config.
+OpenClaw cron setup is documented in [docs/openclaw-cron.md](docs/openclaw-cron.md).
+
+## Optional `/spend` Command
+
+The optional OpenClaw extension in [extension/](extension/) registers a
+Telegram-formatted `/spend` command backed by `scripts/usage_report.py`.
+
+```text
+/spend
+/spend today
+/spend week
+/spend month 2026-06
+/spend ytd
+/spend model
+/spend anthropic week
+/spend collect
+```
+
+See [extension/README.md](extension/README.md) for install and config.
+
+## Docs
+
+| Doc | What it covers |
+|-----|----------------|
+| [docs/database-setup.md](docs/database-setup.md) | SQLite setup, verification, schema, backups |
+| [docs/openclaw-jsonl-format.md](docs/openclaw-jsonl-format.md) | JSONL fields and DB mapping |
+| [docs/openclaw-cron.md](docs/openclaw-cron.md) | OpenClaw cron setup |
+| [docs/calibration.md](docs/calibration.md) | Cost calibration against actual bills |
+| [docs/sanitization.md](docs/sanitization.md) | Public/private repo model |
+| [docs/roadmap.md](docs/roadmap.md) | Planned improvements |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
+## Public Product Model
+
+This repository is the generic public product baseline, not a sanitized export
+of one private deployment.
+
+Private deployment overlays should stay in private source control. Promote
+generic changes into this public repo by reviewed patch or cherry-pick only.
+Never raw-merge private repository history into the public repo.
+
+## Security
+
+Generated databases, labels, local billing actuals, and provider keys are
+private artifacts. See [SECURITY.md](SECURITY.md) before sharing logs, reports,
+screenshots, or database files.
+
+## Contributing
+
+Bug reports, provider pricing fixes, docs improvements, and small focused pull
+requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
