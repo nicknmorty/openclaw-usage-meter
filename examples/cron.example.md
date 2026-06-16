@@ -3,7 +3,7 @@
 Run collection every 10 minutes with a generic local checkout path:
 
 ```cron
-*/10 * * * * python3 /home/user/apps/agent-usage-collector/scripts/agent_usage_collect.py
+*/10 * * * * python3 /home/user/apps/openclaw-usage-meter/scripts/agent_usage_collect.py
 ```
 
 If your deployment uses OpenClaw cron or another scheduler, keep the real target

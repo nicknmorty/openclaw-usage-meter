@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving agent-usage-collector.
+Thanks for improving openclaw-usage-meter.
 
 ## Public Product Boundary
 

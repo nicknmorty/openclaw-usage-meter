@@ -11,11 +11,11 @@ In your OpenClaw config (`openclaw.json`):
   "cron": {
     "jobs": [
       {
-        "name": "agent-usage-collector",
+        "name": "openclaw-usage-meter",
         "schedule": { "kind": "every", "everyMs": 600000 },
         "payload": {
           "kind": "agentTurn",
-          "message": "Run: python3 /path/to/agent-usage-collector/scripts/agent_usage_collect.py"
+          "message": "Run: python3 /path/to/openclaw-usage-meter/scripts/agent_usage_collect.py"
         },
         "sessionTarget": "isolated"
       }
@@ -27,13 +27,13 @@ In your OpenClaw config (`openclaw.json`):
 Or use the OpenClaw cron CLI:
 
 ```bash
-openclaw cron add --name agent-usage-collector --every 600000 ...
+openclaw cron add --name openclaw-usage-meter --every 600000 ...
 ```
 
 ## Manual trigger
 
 ```bash
-python3 /path/to/agent-usage-collector/scripts/agent_usage_collect.py
+python3 /path/to/openclaw-usage-meter/scripts/agent_usage_collect.py
 ```
 
 The collector is idempotent — running it twice on the same JSONL files produces the same result.

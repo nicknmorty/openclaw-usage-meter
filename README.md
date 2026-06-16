@@ -1,4 +1,4 @@
-# agent-usage-collector
+# openclaw-usage-meter
 
 Track the real API cost of [OpenClaw](https://openclaw.ai) agent sessions across all billing streams — Anthropic direct API, OpenAI direct API, OpenAI subscription (ChatGPT Pro), and OpenRouter.
 
@@ -23,8 +23,8 @@ OpenClaw runs your AI agents. The costs across multiple providers add up in ways
 
 ```bash
 # Install (no external dependencies — pure Python stdlib)
-git clone https://github.com/YOUR_ORG/agent-usage-collector.git
-cd agent-usage-collector
+git clone https://github.com/YOUR_ORG/openclaw-usage-meter.git
+cd openclaw-usage-meter
 
 # First collection run (builds DB from existing JSONL sessions)
 python3 scripts/agent_usage_collect.py
@@ -138,7 +138,7 @@ provider.
 The collector is idempotent — safe to run frequently. Example cron job:
 
 ```
-*/10 * * * * python3 /path/to/agent-usage-collector/scripts/agent_usage_collect.py
+*/10 * * * * python3 /path/to/openclaw-usage-meter/scripts/agent_usage_collect.py
 ```
 
 Or via OpenClaw cron (see `docs/openclaw-cron.md`).
