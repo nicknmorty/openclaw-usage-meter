@@ -19,7 +19,7 @@ jobs:
     uses: ./.github/workflows/ci-standard.yml
     with:
       profile: public
-      smoke-command: scripts/ci-smoke-core.sh
-      local-smoke-command: scripts/ci-smoke-local.sh
-      public-audit-command: scripts/public-audit.sh
+      smoke_command: scripts/ci-smoke-core.sh
+      local_smoke_command: scripts/ci-smoke-local.sh
+      public_audit_command: scripts/public-audit.sh
     secrets: inherit
