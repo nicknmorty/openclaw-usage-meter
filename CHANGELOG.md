@@ -11,6 +11,8 @@ This project uses semantic versioning for public releases.
 - Added GitHub Actions CI for public smoke checks and public hygiene auditing.
 - Added local `scripts/ci-smoke.sh` and `scripts/public-audit.sh` gates for
   contributors and releases.
+- Added a public-safe OpenClaw JSONL fixture and fixture collection/reporting
+  assertion script.
 - Added CI/CD documentation in `docs/ci.md`.
 - Added dedicated SQLite setup documentation in `docs/database-setup.md`.
 - Added README links for database setup, release history, and public/private

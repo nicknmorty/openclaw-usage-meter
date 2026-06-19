@@ -41,4 +41,7 @@ python3 scripts/usage_report.py \
   --json \
   >/dev/null
 
+echo "ci-smoke: fixture collection"
+python3 scripts/test-fixture-collection.py
+
 echo "ci-smoke: clean"

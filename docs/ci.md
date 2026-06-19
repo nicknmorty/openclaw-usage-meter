@@ -20,6 +20,7 @@ The smoke gate checks:
 - CLI help commands
 - empty-collection database creation in a temporary directory
 - JSON report generation from the temporary database
+- fixture collection/reporting against public-safe OpenClaw JSONL
 
 Run it locally:
 
@@ -57,3 +58,13 @@ git status --short
 ```
 
 The working tree should be clean except for intentional release edits.
+
+## Fixture Contract
+
+The public fixture under `tests/fixtures/openclaw-agents/` uses fake OpenClaw
+session JSONL with boring example content. It must stay free of private names,
+chat IDs, local paths, provider keys, billing actuals, and generated databases.
+
+`scripts/test-fixture-collection.py` asserts that collection stores a real usage
+event, computes cost from token counts, updates session counters, and exposes
+the expected model row through JSON reporting.
