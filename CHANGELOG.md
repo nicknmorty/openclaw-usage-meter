@@ -13,6 +13,7 @@ This project uses semantic versioning for public releases.
   contributors and releases.
 - Added a public-safe OpenClaw JSONL fixture and fixture collection/reporting
   assertion script.
+- Added a ZAI `glm-5.1` fixture so CI covers a second provider/model shape.
 - Added a clean archive checkout smoke test so CI verifies tracked-file
   usability.
 - Added CI/CD documentation in `docs/ci.md`.
@@ -24,6 +25,8 @@ This project uses semantic versioning for public releases.
 
 - Kept CLI help text from expanding default private config paths into local
   usernames.
+- Mark token-bearing events with no pricing table entry as `unknown` cost
+  instead of conflating them with known zero-cost usage.
 - Polished the README around quick start, architecture, core commands, billing
   streams, database setup, private overlays, automation, and extension usage.
 
