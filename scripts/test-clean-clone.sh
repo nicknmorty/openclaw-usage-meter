@@ -34,6 +34,14 @@ python3 -m py_compile \
 echo "clean-clone: Node extension syntax"
 node --check extension/index.js
 
+echo "clean-clone: Shell syntax"
+bash -n \
+  scripts/ci-smoke.sh \
+  scripts/ci-smoke-core.sh \
+  scripts/ci-smoke-local.sh \
+  scripts/public-audit.sh \
+  scripts/test-clean-clone.sh
+
 echo "clean-clone: CLI help"
 python3 scripts/agent_usage_collect.py --help >/dev/null
 python3 scripts/usage_report.py --help >/dev/null

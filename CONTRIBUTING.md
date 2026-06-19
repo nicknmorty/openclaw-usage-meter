@@ -39,10 +39,9 @@ scripts/ci-smoke.sh
 scripts/public-audit.sh
 ```
 
-The smoke gate checks syntax, Ruff lint, CLI help, an empty collection run, fixture
-collection/reporting, clean archive checkout usability, and JSON report
-generation. The public audit checks for private environment leaks, generated
-files, placeholder mistakes, local path leakage, and `gitleaks` findings when
-`gitleaks` is installed.
+The smoke gate runs core syntax/Ruff/CLI checks plus usage-meter-specific
+collection, fixture, report, and clean archive checkout checks. The public audit
+checks for private environment leaks, generated files, placeholder mistakes,
+local path leakage, and `gitleaks` findings when `gitleaks` is installed.
 
 See [docs/ci.md](docs/ci.md) for the full CI/CD workflow.

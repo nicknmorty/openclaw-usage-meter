@@ -1,0 +1,127 @@
+name: CI Standard
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        description: CI profile: public or private
+        type: string
+        default: public
+      python-versions:
+        description: JSON array of Python versions for the smoke matrix
+        type: string
+        default: '["3.9", "3.12"]'
+      node-version:
+        description: Node version for extension syntax checks
+        type: string
+        default: "20"
+      ruff-version:
+        description: Ruff version installed before smoke checks
+        type: string
+        default: "0.12.0"
+      smoke-command:
+        description: Shared/core smoke gate entrypoint
+        type: string
+        default: scripts/ci-smoke-core.sh
+      local-smoke-command:
+        description: Repo-specific smoke hook entrypoint
+        type: string
+        default: scripts/ci-smoke-local.sh
+      run-local-smoke:
+        description: Run the repo-specific smoke hook
+        type: boolean
+        default: true
+      public-audit-command:
+        description: Public-audit gate entrypoint
+        type: string
+        default: scripts/public-audit.sh
+      run-public-audit:
+        description: Run public hygiene audit for public repos
+        type: boolean
+        default: true
+      run-gitleaks:
+        description: Run the gitleaks secret-scan action
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJSON(inputs.python-versions) }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Node
+        if: ${{ inputs.node-version != '' }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Python lint tools
+        run: python -m pip install ruff==${{ inputs.ruff-version }}
+
+      - name: Run core smoke checks
+        run: ${{ inputs.smoke-command }}
+
+      - name: Run local smoke checks
+        if: ${{ inputs.run-local-smoke }}
+        run: ${{ inputs.local-smoke-command }}
+
+  public-audit:
+    name: public-audit
+    if: ${{ inputs.profile == 'public' && (inputs.run-public-audit || inputs.run-gitleaks) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Secret scan
+        if: ${{ inputs.run-gitleaks }}
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run public audit
+        if: ${{ inputs.run-public-audit }}
+        run: ${{ inputs.public-audit-command }}
+
+  private-gitleaks:
+    name: private-gitleaks
+    if: ${{ inputs.profile == 'private' && inputs.run-gitleaks }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

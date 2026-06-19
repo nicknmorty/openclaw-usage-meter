@@ -9,22 +9,33 @@ GitHub Actions runs on pull requests, pushes to `main`, and manual dispatch.
 Workflow actions are pinned to commit SHAs, jobs have 10-minute timeouts, and
 rapid pushes cancel older in-progress runs for the same ref.
 
+The thin caller `.github/workflows/ci.yml` delegates to the local reusable
+workflow `.github/workflows/ci-standard.yml`. The reusable workflow accepts a
+`profile` input (`public` or `private`), though this public repo currently calls
+it with `profile: public`.
+
 ## Jobs
 
 ### Smoke
 
-`.github/workflows/ci.yml` runs `scripts/ci-smoke.sh` on Python 3.9 and 3.12.
+The reusable workflow runs the smoke matrix on Python 3.9 and 3.12.
 
-The smoke gate checks:
+The core smoke gate (`scripts/ci-smoke-core.sh`) checks:
 
 - Python syntax for the three core scripts
 - Ruff lint checks
 - optional Node extension syntax
 - CLI help commands
+
+The local smoke hook (`scripts/ci-smoke-local.sh`) checks usage-meter-specific
+behavior:
+
 - empty-collection database creation in a temporary directory
 - JSON report generation from the temporary database
 - fixture collection/reporting against public-safe OpenClaw JSONL
 - clean archive checkout usability through `scripts/test-clean-clone.sh`
+
+`scripts/ci-smoke.sh` remains the local aggregate wrapper for contributors.
 
 Run it locally:
 

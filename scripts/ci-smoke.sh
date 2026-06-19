@@ -6,50 +6,7 @@ repo_root="$(cd -- "$script_dir/.." && pwd -P)"
 
 cd "$repo_root"
 
-echo "ci-smoke: Python syntax"
-python3 -m py_compile \
-  scripts/agent_usage_collect.py \
-  scripts/usage_report.py \
-  scripts/fetch_openai_usage.py
-
-echo "ci-smoke: ruff"
-python3 -m ruff check .
-
-echo "ci-smoke: Node extension syntax"
-node --check extension/index.js
-
-echo "ci-smoke: CLI help"
-python3 scripts/agent_usage_collect.py --help >/dev/null
-python3 scripts/usage_report.py --help >/dev/null
-python3 scripts/fetch_openai_usage.py --help >/dev/null
-
-tmp_dir="$(mktemp -d)"
-cleanup() {
-  rm -rf -- "$tmp_dir"
-}
-trap cleanup EXIT
-
-mkdir -p "$tmp_dir/agents"
-
-echo "ci-smoke: empty collection"
-python3 scripts/agent_usage_collect.py \
-  --db "$tmp_dir/agent_usage.sqlite" \
-  --agents-dir "$tmp_dir/agents" \
-  --workspace "$tmp_dir" \
-  >/dev/null
-
-echo "ci-smoke: JSON report"
-python3 scripts/usage_report.py \
-  --db "$tmp_dir/agent_usage.sqlite" \
-  --json \
-  >/dev/null
-
-echo "ci-smoke: fixture collection"
-python3 scripts/test-fixture-collection.py
-
-if [ "${USAGE_METER_SKIP_CLEAN_CLONE:-0}" != "1" ]; then
-  echo "ci-smoke: clean clone"
-  scripts/test-clean-clone.sh
-fi
+scripts/ci-smoke-core.sh
+scripts/ci-smoke-local.sh
 
 echo "ci-smoke: clean"
