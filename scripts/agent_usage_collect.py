@@ -963,7 +963,7 @@ def main() -> int:
         "--contacts",
         type=Path,
         default=None,
-        help=f"Optional contact-label JSON (default {DEFAULT_CONTACT_LABELS})",
+        help="Optional contact-label JSON (default ~/.openclaw/usage/contact-labels.json)",
     )
     ap.add_argument(
         "--include-checkpoints",

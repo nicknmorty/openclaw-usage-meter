@@ -30,5 +30,17 @@ a public tag or commit and keep their overlays separately.
 
 ## Checks
 
-Before proposing a public release, run the relevant tests plus leak scans such
-as `gitleaks` and a custom identity/environment string scan.
+Before opening a PR or proposing a public release, run the same local gates used
+by CI:
+
+```bash
+scripts/ci-smoke.sh
+scripts/public-audit.sh
+```
+
+The smoke gate checks syntax, CLI help, an empty collection run, and JSON report
+generation. The public audit checks for private environment leaks, generated
+files, placeholder mistakes, local path leakage, and `gitleaks` findings when
+`gitleaks` is installed.
+
+See [docs/ci.md](docs/ci.md) for the full CI/CD workflow.

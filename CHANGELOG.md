@@ -8,12 +8,18 @@ This project uses semantic versioning for public releases.
 
 ### Added
 
+- Added GitHub Actions CI for public smoke checks and public hygiene auditing.
+- Added local `scripts/ci-smoke.sh` and `scripts/public-audit.sh` gates for
+  contributors and releases.
+- Added CI/CD documentation in `docs/ci.md`.
 - Added dedicated SQLite setup documentation in `docs/database-setup.md`.
 - Added README links for database setup, release history, and public/private
   deployment guidance.
 
 ### Changed
 
+- Kept CLI help text from expanding default private config paths into local
+  usernames.
 - Polished the README around quick start, architecture, core commands, billing
   streams, database setup, private overlays, automation, and extension usage.
 
