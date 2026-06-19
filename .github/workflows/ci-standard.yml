@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       profile:
-        description: CI profile: public or private
+        description: "CI profile: public or private"
         type: string
         default: public
       python_versions:
