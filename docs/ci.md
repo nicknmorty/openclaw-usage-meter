@@ -66,9 +66,10 @@ The public fixture under `tests/fixtures/openclaw-agents/` uses fake OpenClaw
 session JSONL with boring example content. It must stay free of private names,
 chat IDs, local paths, provider keys, billing actuals, and generated databases.
 
-`scripts/test-fixture-collection.py` asserts that collection stores a real usage
-event, computes cost from token counts, updates session counters, and exposes
-the expected model row through JSON reporting.
+`scripts/test-fixture-collection.py` asserts that collection stores provider-
+shaped usage events, computes known model cost from token counts, marks unpriced
+model cost as unknown, updates session counters, and exposes the expected model
+rows through JSON reporting.
 
 ## Clean Clone
 

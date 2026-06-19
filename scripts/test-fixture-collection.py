@@ -15,6 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_AGENTS = REPO_ROOT / "tests" / "fixtures" / "openclaw-agents"
 EXPECTED_COST = 0.00081
+EXPECTED_TOTAL_TOKENS = 638
 
 
 def run(args: list[str]) -> str:
@@ -59,16 +60,20 @@ def main() -> int:
             str(workspace),
         ])
         collect = json.loads(collect_raw)
-        assert_equal(collect["inserted_usage_events"], 1, "inserted usage events")
-        assert_equal(collect["stored_assistant_turns"], 1, "stored assistant turns")
-        assert_equal(collect["stored_total_tokens"], 470, "stored total tokens")
+        assert_equal(collect["inserted_usage_events"], 2, "inserted usage events")
+        assert_equal(collect["stored_assistant_turns"], 2, "stored assistant turns")
+        assert_equal(collect["stored_total_tokens"], EXPECTED_TOTAL_TOKENS, "stored total tokens")
 
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         try:
-            event = conn.execute("SELECT * FROM usage_events").fetchone()
-            if event is None:
-                raise AssertionError("expected one usage event")
+            events = {
+                row["provider"]: row
+                for row in conn.execute("SELECT * FROM usage_events ORDER BY provider").fetchall()
+            }
+            assert_equal(set(events), {"anthropic", "zai"}, "event providers")
+
+            event = events["anthropic"]
             assert_equal(event["provider"], "anthropic", "event provider")
             assert_equal(event["model"], "claude-sonnet-4-6", "event model")
             assert_equal(event["input_tokens"], 100, "input tokens")
@@ -79,12 +84,29 @@ def main() -> int:
             assert_equal(event["cost_source"], "computed", "cost source")
             assert_close(float(event["cost_usd"]), EXPECTED_COST, "computed cost")
 
-            counter = conn.execute("SELECT * FROM session_counters").fetchone()
+            zai_event = events["zai"]
+            assert_equal(zai_event["provider"], "zai", "zai event provider")
+            assert_equal(zai_event["model"], "glm-5.1", "zai event model")
+            assert_equal(zai_event["input_tokens"], 123, "zai input tokens")
+            assert_equal(zai_event["output_tokens"], 45, "zai output tokens")
+            assert_equal(zai_event["cache_read_tokens"], 0, "zai cache read tokens")
+            assert_equal(zai_event["cache_write_tokens"], 0, "zai cache write tokens")
+            assert_equal(zai_event["total_tokens"], 168, "zai total tokens")
+            assert_equal(zai_event["cost_source"], "unknown", "zai cost source")
+            assert_close(float(zai_event["cost_usd"]), 0.0, "zai unknown cost")
+
+            counter = conn.execute(
+                "SELECT SUM(user_messages) AS user_messages,"
+                " SUM(assistant_turns) AS assistant_turns,"
+                " SUM(total_tokens) AS total_tokens,"
+                " SUM(cost_usd) AS cost_usd"
+                " FROM session_counters"
+            ).fetchone()
             if counter is None:
-                raise AssertionError("expected one session counter row")
-            assert_equal(counter["user_messages"], 1, "user messages")
-            assert_equal(counter["assistant_turns"], 1, "assistant turns")
-            assert_equal(counter["total_tokens"], 470, "counter total tokens")
+                raise AssertionError("expected session counter summary")
+            assert_equal(counter["user_messages"], 2, "user messages")
+            assert_equal(counter["assistant_turns"], 2, "assistant turns")
+            assert_equal(counter["total_tokens"], EXPECTED_TOTAL_TOKENS, "counter total tokens")
             assert_close(float(counter["cost_usd"]), EXPECTED_COST, "counter cost")
         finally:
             conn.close()
@@ -99,12 +121,17 @@ def main() -> int:
         ])
         report = json.loads(report_raw)
         assert_equal(report["report"], "model", "report kind")
-        assert_equal(len(report["rows"]), 1, "report row count")
-        row = report["rows"][0]
-        assert_equal(row["model"], "claude-sonnet-4-6", "report model")
-        assert_equal(row["provider"], "anthropic", "report provider")
-        assert_equal(row["events"], 1, "report events")
-        assert_equal(row["tokens"], 470, "report tokens")
+        assert_equal(len(report["rows"]), 2, "report row count")
+        rows = {(row["provider"], row["model"]): row for row in report["rows"]}
+
+        row = rows[("anthropic", "claude-sonnet-4-6")]
+        assert_equal(row["events"], 1, "anthropic report events")
+        assert_equal(row["tokens"], 470, "anthropic report tokens")
+
+        zai_row = rows[("zai", "glm-5.1")]
+        assert_equal(zai_row["events"], 1, "zai report events")
+        assert_equal(zai_row["tokens"], 168, "zai report tokens")
+        assert_close(float(zai_row["cost"]), 0.0, "zai report cost")
 
     print("fixture-collection: clean")
     return 0

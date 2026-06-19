@@ -343,7 +343,8 @@ def resolved_cost(
     cost_source values:
       'jsonl'    - non-zero JSONL cost was explicitly trusted
       'computed' - cost was 0 in JSONL; computed from pricing table
-      'zero'     - cost is 0 and we have no pricing (free model, unknown, etc.)
+      'zero'     - cost is 0 because no tokens were used or the priced model is free
+      'unknown'  - tokens were used, but no pricing table entry exists
     """
     raw = float(counts["cost_usd"])
     if raw > 0 and TRUST_JSONL_COST:
@@ -357,6 +358,9 @@ def resolved_cost(
         or counts["cache_write_tokens"] > 0
     )
     if has_tokens:
+        pricing = get_model_pricing(model_id, provider)
+        if pricing is None:
+            return 0.0, "unknown"
         computed = compute_cost_from_tokens(
             counts["input_tokens"],
             counts["output_tokens"],
