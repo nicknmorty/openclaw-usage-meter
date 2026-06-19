@@ -85,9 +85,11 @@ session JSONL with boring example content. It must stay free of private names,
 chat IDs, local paths, provider keys, billing actuals, and generated databases.
 
 `scripts/test-fixture-collection.py` asserts that collection stores provider-
-shaped usage events, computes known model cost from token counts, marks unpriced
-model cost as unknown, updates session counters, and exposes the expected model
-rows through JSON reporting.
+shaped usage events, computes known model cost from token counts, ignores
+OpenAI cache-write tokens for cost computation, marks unpriced model cost as
+unknown, backfills priced `unknown` rows during recalibration, keeps prefix-only
+model ID collisions unknown, updates session counters, and exposes the expected
+model rows through JSON reporting.
 
 ## Clean Clone
 

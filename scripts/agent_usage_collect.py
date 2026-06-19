@@ -55,7 +55,7 @@ class ModelPrice(NamedTuple):
     provider_hint: str  # 'anthropic' | 'openai' | 'unknown'
 
 
-# Keyed by canonical model ID prefix (longest match wins).
+# Keyed by canonical model ID or explicit alias.
 # Anthropic canonical IDs: claude-opus-4-8, claude-sonnet-4-6, etc.
 # OpenAI canonical IDs: gpt-5.5, gpt-5.4, gpt-5.4-mini, etc.
 PRICING_TABLE: dict[str, ModelPrice] = {
@@ -243,17 +243,7 @@ def get_model_pricing(model_id: str, _provider: str = "") -> ModelPrice | None:
     if not model_id:
         return None
     norm = _normalize_model_id(model_id)
-    # Exact match
-    if norm in _NORM_PRICING:
-        return _NORM_PRICING[norm]
-    # Longest prefix match
-    best_key = ""
-    for key in _NORM_PRICING:
-        if norm.startswith(key) and len(key) > len(best_key):
-            best_key = key
-    if best_key:
-        return _NORM_PRICING[best_key]
-    return None
+    return _NORM_PRICING.get(norm)
 
 
 def compute_cost_from_tokens(

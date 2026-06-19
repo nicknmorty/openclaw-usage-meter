@@ -1,0 +1,3 @@
+{"type":"model_change","id":"evt_openai_model","timestamp":"2026-06-01T12:15:00.000Z","provider":"openai","modelId":"gpt-5.4-mini"}
+{"type":"message","id":"evt_openai_user","timestamp":"2026-06-01T12:15:01.000Z","message":{"role":"user","content":[{"type":"text","text":"Example OpenAI prompt for cache-write fixture coverage."}]}}
+{"type":"message","id":"evt_openai_assistant","timestamp":"2026-06-01T12:15:02.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Example OpenAI response for cache-write fixture coverage."}],"provider":"openai","model":"gpt-5.4-mini","usage":{"input":2000,"output":400,"cacheRead":1000,"cacheWrite":9000,"totalTokens":12400,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}}

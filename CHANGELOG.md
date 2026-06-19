@@ -17,6 +17,8 @@ This project uses semantic versioning for public releases.
 - Added a public-safe OpenClaw JSONL fixture and fixture collection/reporting
   assertion script.
 - Added a ZAI `glm-5.1` fixture so CI covers a second provider/model shape.
+- Added an OpenAI `gpt-5.4-mini` fixture that proves OpenAI cache-write tokens
+  are ignored for cost computation.
 - Added a clean archive checkout smoke test so CI verifies tracked-file
   usability.
 - Added CI/CD documentation in `docs/ci.md`.
@@ -36,6 +38,9 @@ This project uses semantic versioning for public releases.
   instead of conflating them with known zero-cost usage.
 - Let `--recalibrate` revisit all `unknown` cost rows so newly priced providers
   can be backfilled later.
+- Restricted pricing lookup to exact normalized model IDs and explicit aliases,
+  avoiding accidental pricing for unknown models that merely share a prefix with
+  a known model.
 - Polished the README around quick start, architecture, core commands, billing
   streams, database setup, private overlays, automation, and extension usage.
 
