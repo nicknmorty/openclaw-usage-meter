@@ -26,7 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -1010,14 +1010,22 @@ def main() -> None:
     print(f"Generated: {_tz_now().strftime('%Y-%m-%d %H:%M')} ({_tzname}) "
           f"— day/week buckets are local; month/ytd are UTC")
 
-    if run_monthly:   report_monthly(conn, args)
-    if run_today:     report_today(conn, args)
-    if run_daily:     report_daily(conn, args)
-    if run_model:     report_model(conn, args)
-    if run_breakdown: report_breakdown(conn, args)
-    if run_week:      report_week(conn, args)
-    if run_ytd:       report_ytd(conn, args)
-    if run_calibrate: report_calibrate(conn, args)
+    if run_monthly:
+        report_monthly(conn, args)
+    if run_today:
+        report_today(conn, args)
+    if run_daily:
+        report_daily(conn, args)
+    if run_model:
+        report_model(conn, args)
+    if run_breakdown:
+        report_breakdown(conn, args)
+    if run_week:
+        report_week(conn, args)
+    if run_ytd:
+        report_ytd(conn, args)
+    if run_calibrate:
+        report_calibrate(conn, args)
 
     conn.close()
 

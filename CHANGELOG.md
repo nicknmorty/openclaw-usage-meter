@@ -11,6 +11,7 @@ This project uses semantic versioning for public releases.
 - Added GitHub Actions CI for public smoke checks and public hygiene auditing.
 - Added local `scripts/ci-smoke.sh` and `scripts/public-audit.sh` gates for
   contributors and releases.
+- Added Ruff linting to the smoke gate.
 - Added a public-safe OpenClaw JSONL fixture and fixture collection/reporting
   assertion script.
 - Added a ZAI `glm-5.1` fixture so CI covers a second provider/model shape.
@@ -25,6 +26,8 @@ This project uses semantic versioning for public releases.
 
 - Kept CLI help text from expanding default private config paths into local
   usernames.
+- Pinned CI actions to commit SHAs and added workflow concurrency plus job
+  timeouts.
 - Mark token-bearing events with no pricing table entry as `unknown` cost
   instead of conflating them with known zero-cost usage.
 - Let `--recalibrate` revisit all `unknown` cost rows so newly priced providers

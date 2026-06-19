@@ -12,6 +12,9 @@ python3 -m py_compile \
   scripts/usage_report.py \
   scripts/fetch_openai_usage.py
 
+echo "ci-smoke: ruff"
+python3 -m ruff check .
+
 echo "ci-smoke: Node extension syntax"
 node --check extension/index.js
 

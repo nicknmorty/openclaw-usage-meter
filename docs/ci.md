@@ -6,6 +6,8 @@ The public CI pipeline protects two boundaries:
 2. The repository does not grow private environment leaks over time.
 
 GitHub Actions runs on pull requests, pushes to `main`, and manual dispatch.
+Workflow actions are pinned to commit SHAs, jobs have 10-minute timeouts, and
+rapid pushes cancel older in-progress runs for the same ref.
 
 ## Jobs
 
@@ -16,6 +18,7 @@ GitHub Actions runs on pull requests, pushes to `main`, and manual dispatch.
 The smoke gate checks:
 
 - Python syntax for the three core scripts
+- Ruff lint checks
 - optional Node extension syntax
 - CLI help commands
 - empty-collection database creation in a temporary directory
@@ -26,8 +29,12 @@ The smoke gate checks:
 Run it locally:
 
 ```bash
+python3 -m pip install ruff==0.12.0
 scripts/ci-smoke.sh
 ```
+
+Prefer installing Ruff in a virtual environment for local runs. CI installs the
+pinned Ruff version before calling the smoke script.
 
 ### Public Audit
 

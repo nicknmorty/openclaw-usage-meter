@@ -233,11 +233,12 @@ def _build_norm_pricing() -> None:
 _build_norm_pricing()
 
 
-def get_model_pricing(model_id: str, provider: str = "") -> ModelPrice | None:
+def get_model_pricing(model_id: str, _provider: str = "") -> ModelPrice | None:
     """Return ModelPrice for a model, or None if unknown.
 
     Both the lookup key and PRICING_TABLE keys are normalized before comparison,
     so gpt-5.5 (dots) correctly maps to the gpt-5.5 entry after normalization.
+    The provider argument is reserved for future provider-aware disambiguation.
     """
     if not model_id:
         return None

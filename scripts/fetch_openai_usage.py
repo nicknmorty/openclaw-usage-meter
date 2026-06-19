@@ -221,7 +221,7 @@ def print_report(
                    if any(s["requests"] > 0 for s in v.values())]
     active_days.sort(key=lambda x: x[0])
     if active_days:
-        print(f"\n=== Daily Breakdown (days with activity) ===")
+        print("\n=== Daily Breakdown (days with activity) ===")
         print(f"{'Date':<12} {'Requests':>10} {'Input':>12} {'Output':>10} {'Cached':>10} {'API Cost $':>12}")
         print("-" * 72)
         for day, day_data in active_days:

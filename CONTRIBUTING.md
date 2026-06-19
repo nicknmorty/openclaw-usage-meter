@@ -34,11 +34,12 @@ Before opening a PR or proposing a public release, run the same local gates used
 by CI:
 
 ```bash
+python3 -m pip install ruff==0.12.0
 scripts/ci-smoke.sh
 scripts/public-audit.sh
 ```
 
-The smoke gate checks syntax, CLI help, an empty collection run, fixture
+The smoke gate checks syntax, Ruff lint, CLI help, an empty collection run, fixture
 collection/reporting, clean archive checkout usability, and JSON report
 generation. The public audit checks for private environment leaks, generated
 files, placeholder mistakes, local path leakage, and `gitleaks` findings when
