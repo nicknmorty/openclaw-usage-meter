@@ -346,7 +346,7 @@ def report_monthly(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
     pfrag, pparams = provider_filter_sql(prov)
     suffix = f" — {prov}" if prov else ""
     print(f"\n=== Monthly Cost Summary{suffix} ===")
-    print("  " + f"{"Month":<10}  {"Provider":<12}  {"Cost":<13}  Events")
+    print("  " + "{:<10}  {:<12}  {:<13}  Events".format("Month", "Provider", "Cost"))
     print("-" * 72)
 
     cur = conn.cursor()
@@ -760,8 +760,10 @@ def report_calibrate(conn: sqlite3.Connection, args: argparse.Namespace) -> None
         print("  Tip: pass --actual AMOUNT to compare against your Anthropic bill.")
     print()
 
-    hdr_cmp = f"{cmp_hdr:>30}" if actual else f"  {cmp_hdr}"
-    print(f"  {"cw_mult":>8}  {"cw_price (opus)":>16}  {"Estimated Total":>16}" + (f"  {cmp_hdr:>30}" if actual else ""))
+    header = "  {:>8}  {:>16}  {:>16}".format("cw_mult", "cw_price (opus)", "Estimated Total")
+    if actual:
+        header += f"  {cmp_hdr:>30}"
+    print(header)
     print("  " + "-" * (75 if not actual else 90))
 
     best_fit_mult = None
@@ -975,7 +977,7 @@ def main() -> None:
     parser.add_argument("--actual",    type=float, default=None, metavar="AMOUNT",
                         help="Actual Anthropic bill amount for calibration (e.g. --actual 123.45)")
     parser.add_argument("--actuals",   type=Path, default=None, metavar="PATH",
-                        help=f"Actual-paid billing config JSON (default {DEFAULT_ACTUALS_PATH})")
+                        help="Actual-paid billing config JSON (default ~/.openclaw/usage/subscriptions.json)")
     parser.add_argument("--tz",        type=str, default=None, metavar="IANA_TZ",
                         help="Reporting timezone for today/week/daily buckets "
                              "(default America/Los_Angeles; env SPEND_TZ)")
