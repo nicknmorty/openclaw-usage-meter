@@ -13,6 +13,8 @@ This project uses semantic versioning for public releases.
   contributors and releases.
 - Added a public-safe OpenClaw JSONL fixture and fixture collection/reporting
   assertion script.
+- Added a clean archive checkout smoke test so CI verifies tracked-file
+  usability.
 - Added CI/CD documentation in `docs/ci.md`.
 - Added dedicated SQLite setup documentation in `docs/database-setup.md`.
 - Added README links for database setup, release history, and public/private

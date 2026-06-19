@@ -21,6 +21,7 @@ The smoke gate checks:
 - empty-collection database creation in a temporary directory
 - JSON report generation from the temporary database
 - fixture collection/reporting against public-safe OpenClaw JSONL
+- clean archive checkout usability through `scripts/test-clean-clone.sh`
 
 Run it locally:
 
@@ -68,3 +69,10 @@ chat IDs, local paths, provider keys, billing actuals, and generated databases.
 `scripts/test-fixture-collection.py` asserts that collection stores a real usage
 event, computes cost from token counts, updates session counters, and exposes
 the expected model row through JSON reporting.
+
+## Clean Clone
+
+`scripts/test-clean-clone.sh` builds a temporary `git archive` checkout and runs
+syntax, help, and fixture checks from that clean tracked-file tree. This catches
+missing tracked files that would not show up when running from a dirty local
+working tree.

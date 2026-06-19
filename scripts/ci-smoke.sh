@@ -44,4 +44,9 @@ python3 scripts/usage_report.py \
 echo "ci-smoke: fixture collection"
 python3 scripts/test-fixture-collection.py
 
+if [ "${USAGE_METER_SKIP_CLEAN_CLONE:-0}" != "1" ]; then
+  echo "ci-smoke: clean clone"
+  scripts/test-clean-clone.sh
+fi
+
 echo "ci-smoke: clean"
