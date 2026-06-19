@@ -111,6 +111,18 @@ def main() -> int:
         finally:
             conn.close()
 
+        recalibrate_raw = run([
+            sys.executable,
+            "scripts/agent_usage_collect.py",
+            "--db",
+            str(db_path),
+            "--recalibrate",
+        ])
+        recalibrate = json.loads(recalibrate_raw)
+        assert_equal(recalibrate["recalibrated"], 0, "recalibrated events")
+        assert_equal(recalibrate["skipped_no_pricing"], 1, "recalibrate skipped no pricing")
+        assert_equal(recalibrate["skipped_unchanged"], 1, "recalibrate skipped unchanged")
+
         report_raw = run([
             sys.executable,
             "scripts/usage_report.py",

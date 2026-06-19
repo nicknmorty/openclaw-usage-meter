@@ -271,6 +271,23 @@ def compute_cost_from_tokens(
     pricing = get_model_pricing(model_id, provider)
     if pricing is None:
         return 0.0
+    return compute_cost_with_pricing(
+        input_tokens,
+        output_tokens,
+        cache_read_tokens,
+        cache_write_tokens,
+        pricing,
+    )
+
+
+def compute_cost_with_pricing(
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int,
+    cache_write_tokens: int,
+    pricing: ModelPrice,
+) -> float:
+    """Estimate cost from token counts and a known pricing row."""
     mtok = 1_000_000.0
     cost = (
         input_tokens * pricing.input_per_mtok / mtok
@@ -361,13 +378,12 @@ def resolved_cost(
         pricing = get_model_pricing(model_id, provider)
         if pricing is None:
             return 0.0, "unknown"
-        computed = compute_cost_from_tokens(
+        computed = compute_cost_with_pricing(
             counts["input_tokens"],
             counts["output_tokens"],
             counts["cache_read_tokens"],
             counts["cache_write_tokens"],
-            model_id,
-            provider,
+            pricing,
         )
         if computed > 0:
             return computed, "computed"
@@ -688,10 +704,11 @@ def recalibrate_costs(
     dry_run: bool = False,
     verbose: bool = False,
 ) -> dict[str, Any]:
-    """Re-compute cost_usd for all events where cost_source is 'repaired' or 'computed'.
+    """Re-compute cost_usd for events that should follow the pricing table.
 
     Use this after updating the PRICING_TABLE to propagate new prices to previously
-    computed events. Events with cost_source='jsonl' were explicitly trusted via
+    computed events or to backfill unknown rows after adding provider pricing.
+    Events with cost_source='jsonl' were explicitly trusted via
     USAGE_TRUST_JSONL_COST=1 and are left untouched.
     """
     now = datetime.now(timezone.utc).isoformat()
@@ -701,7 +718,7 @@ def recalibrate_costs(
                   cache_read_tokens, cache_write_tokens, cost_usd
              FROM usage_events
              WHERE cost_source IN ('repaired', 'computed')
-                OR (cost_source = 'unknown' AND provider = 'openai-codex')"""
+                OR cost_source = 'unknown'"""
     ).fetchall()
 
     updated = 0
@@ -997,9 +1014,9 @@ def main() -> int:
         "--recalibrate",
         action="store_true",
         help=(
-            "Re-compute cost_usd for all repaired/computed events using current "
-            "PRICING_TABLE. Use after updating pricing table multipliers. "
-            "Safe for JSONL-sourced (cost_source='jsonl' or 'unknown') events."
+            "Re-compute cost_usd for repaired/computed/unknown events using "
+            "current PRICING_TABLE. Use after updating pricing table multipliers "
+            "or adding provider pricing. Leaves JSONL-trusted events untouched."
         ),
     )
     args = ap.parse_args()

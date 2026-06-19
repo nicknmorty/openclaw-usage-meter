@@ -27,6 +27,8 @@ This project uses semantic versioning for public releases.
   usernames.
 - Mark token-bearing events with no pricing table entry as `unknown` cost
   instead of conflating them with known zero-cost usage.
+- Let `--recalibrate` revisit all `unknown` cost rows so newly priced providers
+  can be backfilled later.
 - Polished the README around quick start, architecture, core commands, billing
   streams, database setup, private overlays, automation, and extension usage.
 
